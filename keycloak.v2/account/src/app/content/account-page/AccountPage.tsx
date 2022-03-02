@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import { ActionGroup, Button, Form, FormGroup, TextInput, Grid, GridItem, Expandable} from '@patternfly/react-core';
+import {
+    ActionGroup,
+    Button,
+    Form,
+    FormGroup,
+    Flex,
+    FlexItem,
+    Text,
+    TextInput,
+    Grid,
+    GridItem,
+    Expandable, TextArea
+} from '@patternfly/react-core';
 
 import { HttpResponse } from '../../account-service/account.service';
 import { AccountServiceContext } from '../../account-service/AccountServiceContext';
@@ -26,6 +38,8 @@ import { LocaleSelector } from '../../widgets/LocaleSelectors';
 import { KeycloakContext } from '../../keycloak-service/KeycloakContext';
 import { KeycloakService } from '../../keycloak-service/keycloak.service';
 import { AIACommand } from '../../util/AIACommand';
+import { PhoneNumberModal } from '../../widgets/PhoneNumberModal';
+import { UploadAvatarModal } from '../../widgets/UploadAvatarModal';
 
 declare const features: Features;
 declare const locale: string;
@@ -33,13 +47,24 @@ declare const locale: string;
 interface AccountPageProps {
 }
 
+interface FormFieldsResponse {
+    readonly username?: string;
+    readonly firstName?: string;
+    readonly lastName?: string;
+    readonly email?: string;
+    attributes?: { locale?: [string], phoneNumber?: [string], bio?: [string] };
+}
+
 interface FormFields {
     readonly username?: string;
     readonly firstName?: string;
     readonly lastName?: string;
     readonly email?: string;
-    attributes?: { locale?: [string] };
+    readonly locale?: string;
+    readonly phoneNumber?: string;
+    readonly bio?: string;
 }
+
 
 interface AccountPageState {
     readonly errors: FormFields;
@@ -60,14 +85,18 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
             username: '',
             firstName: '',
             lastName: '',
-            email: ''
+            email: '',
+            phoneNumber: '',
+            bio: '',
         },
         formFields: {
             username: '',
             firstName: '',
             lastName: '',
             email: '',
-            attributes: {}
+            locale: locale,
+            phoneNumber: '',
+            bio: '',
         }
     };
 
@@ -81,16 +110,29 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
     }
 
     private fetchPersonalInfo(): void {
-        this.context!.doGet<FormFields>("/")
-            .then((response: HttpResponse<FormFields>) => {
+        this.context!.doGet<FormFieldsResponse>("/")
+            .then((response: HttpResponse<FormFieldsResponse>) => {
                 this.setState(this.DEFAULT_STATE);
-                const formFields = response.data;
-                if (!formFields!.attributes) {
-                    formFields!.attributes = { locale: [locale] };
+                const formFieldsResponse = response.data;
+                if (!formFieldsResponse!.attributes) {
+                    formFieldsResponse!.attributes = {
+                        locale: [locale],
+                        phoneNumber: [''],
+                        bio: ['']
+                    };
+                } else if (!formFieldsResponse!.attributes.locale) {
+                    formFieldsResponse!.attributes.locale = [locale];
                 }
-                else if (!formFields!.attributes.locale) {
-                    formFields!.attributes.locale = [locale];
-                }
+
+                let formFields: FormFields = {
+                    username: formFieldsResponse!.username,
+                    email: formFieldsResponse!.email,
+                    firstName: formFieldsResponse!.firstName,
+                    lastName: formFieldsResponse!.lastName,
+                    phoneNumber: (formFieldsResponse!.attributes.phoneNumber) ? formFieldsResponse!.attributes.phoneNumber[0] : undefined,
+                    locale: (formFieldsResponse!.attributes.locale) ? formFieldsResponse!.attributes.locale[0] : undefined,
+                    bio: (formFieldsResponse!.attributes.bio) ? formFieldsResponse!.attributes.bio[0] : undefined
+                };
 
                 this.setState({...{ formFields: formFields as FormFields }});
             });
@@ -115,11 +157,22 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
         const form = event.target as HTMLFormElement;
         const isValid = form.checkValidity();
         if (isValid) {
-            const reqData: FormFields = { ...this.state.formFields };
+            const formFields: FormFields = this.state.formFields;
+            const reqData: FormFieldsResponse = {
+                username: formFields.username,
+                email: formFields.email,
+                firstName: formFields.firstName,
+                lastName: formFields.lastName,
+                attributes: {
+                    locale: formFields.locale ? [formFields.locale] : undefined,
+                    bio: formFields.bio ? [formFields.bio] : undefined,
+                    phoneNumber: formFields.phoneNumber ? [formFields.phoneNumber] : undefined //should set in modal
+                }
+            };
             this.context!.doPost<void>("/", reqData)
                 .then(() => {
                     ContentAlert.success('accountUpdatedMessage');
-                    if (locale !== this.state.formFields.attributes!.locale![0]) {
+                    if (locale !== this.state.formFields.locale) {
                         window.location.reload();
                     }
                 });
@@ -147,6 +200,17 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
             <ContentPage title="personalInfoHtmlTitle"
                 introMessage="personalSubMessage">
                 <Form isHorizontal onSubmit={event => this.handleSubmit(event)}>
+                    <FormGroup
+                        label={Msg.localize('avatar')}
+                        fieldId="avatar"
+                    >
+                        <UploadAvatarModal
+                            type="account"
+                            buttonId="upload-avatar-dialog-btn"
+                            buttonTitle={Msg.localize('openUploadAvatarDialogBtn')}
+                        >
+                        </UploadAvatarModal>
+                    </FormGroup>
                     {!this.isRegistrationEmailAsUsername &&
                         <FormGroup
                             label={Msg.localize('username')}
@@ -161,13 +225,13 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                     }
                     <FormGroup
                         label={Msg.localize('email')}
-                        isRequired
+                        isRequired={!fields.phoneNumber}
                         fieldId="email-address"
                         helperTextInvalid={this.state.errors.email}
                         isValid={this.state.errors.email === ''}
                     >
                         <TextInput
-                            isRequired
+                            isRequired={!fields.phoneNumber}
                             type="email"
                             id="email-address"
                             name="email"
@@ -178,6 +242,51 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                         >
                         </TextInput>
                     </FormGroup>
+                    <FormGroup
+                        label={Msg.localize('nickName') + ' (' + Msg.localize('optionalInput') + ')'}
+                        fieldId="first-name"
+                        helperTextInvalid={this.state.errors.firstName}
+                        isValid={this.state.errors.firstName === ''}
+                    >
+                        <TextInput
+                            type="text"
+                            id="first-name"
+                            name="firstName"
+                            maxLength={254}
+                            value={fields.firstName}
+                            onChange={this.handleChange}
+                            isValid={this.state.errors.firstName === ''}
+                        >
+                        </TextInput>
+                    </FormGroup>
+                    <FormGroup
+                        isRequired={!fields.email}
+                        label={Msg.localize('phoneNumber')}
+                        fieldId="phone-number"
+                    >
+                        <Flex className="pf-m-justify-content-space-between pf-m-align-items-baseline">
+                            <FlexItem>
+                                <Text>{ fields.phoneNumber || Msg.localize('phoneNumberNotSet') }</Text>
+                            </FlexItem>
+                            <FlexItem>
+                                <PhoneNumberModal
+                                    type="account"
+                                    oldPhoneNumber={fields.phoneNumber}
+                                    buttonId="phone-number-dialog-btn"
+                                    buttonTitle={Msg.localize('openPhoneNumberDialogBtn')}
+                                    buttonVariant="primary"
+                                    onChange={value => this.setState({
+                                        formFields: {
+                                            ...fields,
+                                            phoneNumber: value || undefined
+                                        }
+                                    })}
+                                >
+                                </PhoneNumberModal>
+                            </FlexItem>
+                        </Flex>
+                    </FormGroup>
+                    {/*
                     <FormGroup
                         label={Msg.localize('firstName')}
                         isRequired
@@ -216,16 +325,35 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                         >
                         </TextInput>
                     </FormGroup>
+                    */}
+                    <FormGroup
+                        label={Msg.localize('bio')}
+                        fieldId="bio"
+                        helperTextInvalid={this.state.errors.firstName}
+                        isValid={this.state.errors.firstName === ''}
+                    >
+                        <TextArea
+                            id="bio"
+                            value={fields.bio || ''}
+                            onChange={value => this.setState({
+                                errors: this.state.errors,
+                                formFields: { ...this.state.formFields, bio: value }
+                            })}
+                            rows={4}
+                        >
+
+                        </TextArea>
+                    </FormGroup>
                     {features.isInternationalizationEnabled && <FormGroup
                         label={Msg.localize('selectLocale')}
                         isRequired
                         fieldId="locale"
                     >
                         <LocaleSelector id="locale-selector"
-                            value={fields.attributes!.locale || ''}
+                            value={fields.locale || ''}
                             onChange={value => this.setState({
                                 errors: this.state.errors,
-                                formFields: { ...this.state.formFields, attributes: { ...this.state.formFields.attributes, locale: [value] }}
+                                formFields: { ...this.state.formFields, locale: value }
                             })}
                         />
                     </FormGroup>}
@@ -298,4 +426,4 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
         >
         </TextInput>
     );
-};
+}

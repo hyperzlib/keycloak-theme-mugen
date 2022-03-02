@@ -1,0 +1,19 @@
+{
+  "plugins": [
+    // "@babel/plugin-transform-modules-amd"
+  ],
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "chrome": 70
+        },
+        "corejs": 3,
+        "useBuiltIns": "entry",
+        "modules": false,
+        "debug": false
+      }
+    ]
+  ]
+}

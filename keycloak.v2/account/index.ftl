@@ -8,6 +8,8 @@
         <meta name="robots" content="noindex, nofollow">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <script src="${resourceUrl}/core-js-bundle.js"></script>
+
         <script>
             <#if properties.developmentMode?has_content && properties.developmentMode == "true">
             var developmentMode = true;

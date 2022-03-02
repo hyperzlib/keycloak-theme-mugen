@@ -1,0 +1,29 @@
+{
+  "name": "keycloak-theme-account",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run babel && npm run core-js && npm run copy && npm run compress",
+    "babel": "babel --source-maps --extensions \".js,.ts,.tsx\" resources-src/ --out-dir resources/",
+    "core-js": "node buildCoreJs.js",
+    "copy": "shx cp -r resources-static/* resources",
+    "compress": "node compress.js"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@babel/compat-data": "^7.16.0",
+    "core-js": "^3.0.0",
+    "corejs": "^1.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.16.8",
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-transform-modules-amd": "^7.16.0",
+    "@babel/preset-env": "^7.16.0",
+    "core-js-builder": "^3.19.1",
+    "shx": "^0.3.2",
+    "terser": "^5.10.0"
+  }
+}

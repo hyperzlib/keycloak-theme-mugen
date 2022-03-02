@@ -1,0 +1,5 @@
+resources
+resources-src
+src/build
+node_modules
+web_modules
