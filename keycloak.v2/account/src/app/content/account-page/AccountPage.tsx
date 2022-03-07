@@ -162,7 +162,7 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                 username: formFields.username,
                 email: formFields.email,
                 firstName: formFields.firstName,
-                lastName: formFields.lastName,
+                lastName: '', // Clear lastName
                 attributes: {
                     locale: formFields.locale ? [formFields.locale] : undefined,
                     bio: formFields.bio ? [formFields.bio] : undefined,
