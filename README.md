@@ -24,3 +24,6 @@ npm run build
 ```
 
 The compilation results will be stored in ```mugen``` folder
+
+## Deploy
+Upload ```keycloak``` and ```mugen``` folder into ```theme``` folder
