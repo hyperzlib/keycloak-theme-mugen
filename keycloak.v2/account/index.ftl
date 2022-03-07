@@ -5,6 +5,7 @@
 
         <meta charset="UTF-8">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="renderer" content="webkit">
         <meta name="robots" content="noindex, nofollow">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -64,9 +65,7 @@
 
             <#if msg??>
                 var locale = '${locale}';
-                <#outputformat "JavaScript">
-                var l18nMsg = JSON.parse('${msgJSON?js_string}');
-                </#outputformat>
+                var l18nMsg = JSON.parse('${msgJSON?no_esc}');
             <#else>
                 var locale = 'en';
                 var l18Msg = {};
@@ -116,13 +115,14 @@
 
         <link rel="stylesheet" type="text/css" href="${resourceCommonUrl}/web_modules/@patternfly/react-core/dist/styles/base.css"/>
         <link rel="stylesheet" type="text/css" href="${resourceCommonUrl}/web_modules/@patternfly/react-core/dist/styles/app.css"/>
+        <link rel="stylesheet" type="text/css" href="${resourceCommonUrl}/web_modules/cropper.min.css"/>
         <link href="${resourceUrl}/public/layout.css" rel="stylesheet"/>
     </head>
 
     <body>
 
         <script>
-            var keycloak = Keycloak({
+            const keycloak = Keycloak({
                 authServerUrl: authUrl,
                 realm: realm,
                 clientId: 'account-console'
@@ -149,18 +149,19 @@
 
 <div id="spinner_screen" style="display:block; height:100%">
     <div style="width: 320px; height: 328px; text-align: center; position: absolute; top:0;	bottom: 0; left: 0;	right: 0; margin: auto;">
-        <#if properties.logo?has_content>
-        <img src="${resourceUrl}${properties.logo}" alt="Logo" class="brand">
-        <#else>
-        <img src="${resourceUrl}/public/logo.svg" alt="Logo" class="brand">
-        </#if>
-        <p>${msg("loadingMessage")}</p>
-        <div>
-            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="margin: auto; background: rgb(255, 255, 255); display: block; shape-rendering: auto;" width="200px" height="200px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
-                <path d="M10 50A40 40 0 0 0 90 50A40 42 0 0 1 10 50" fill="#5DBCD2" stroke="none" transform="rotate(16.3145 50 51)">
-                    <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" keyTimes="0;1" values="0 50 51;360 50 51"></animateTransform>
-                </path>
-            </svg>
+                <#if properties.logo?has_content>
+                <img src="${resourceUrl}${properties.logo}" alt="Logo" class="brand">
+                <#else>
+                <img src="${resourceUrl}/public/logo.svg" alt="Logo" class="brand">
+                </#if>
+                <p>${msg("loadingMessage")}</p>
+                <div >
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="margin: auto; background: rgb(255, 255, 255); display: block; shape-rendering: auto;" width="200px" height="200px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                    <path d="M10 50A40 40 0 0 0 90 50A40 42 0 0 1 10 50" fill="#5DBCD2" stroke="none" transform="rotate(16.3145 50 51)">
+                        <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" keyTimes="0;1" values="0 50 51;360 50 51"></animateTransform>
+                    </path>
+                </div>
+            </div>
         </div>
     </div>
 </div>

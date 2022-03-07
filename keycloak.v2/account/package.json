@@ -4,10 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run babel && npm run core-js && npm run copy && npm run compress",
+    "build": "npm run build-src && npm run build-babel",
+    "build-src": "cd src && npm run build && cd ..",
+    "build-babel": "npm run babel && npm run core-js && npm run migrate && npm run compress && npm run make-dist && npm run copy-res",
     "babel": "babel --source-maps --extensions \".js,.ts,.tsx\" resources-src/ --out-dir resources/",
     "core-js": "node buildCoreJs.js",
-    "copy": "shx cp -r resources-static/* resources",
+    "migrate": "shx cp -r resources-static/* resources",
+    "make-dist": "shx rm -rf ../../mugen/account && shx mkdir ../../mugen/account",
+    "copy-res": "shx cp -r resources ../../mugen/account/ && shx cp -r messages ../../mugen/account/ && shx cp index.ftl ../../mugen/account/ && shx cp theme.properties ../../mugen/account/",
     "compress": "node compress.js"
   },
   "author": "",
