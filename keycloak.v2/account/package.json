@@ -4,14 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build-src && npm run build-babel",
-    "build-src": "cd src && npm run build && cd ..",
-    "build-babel": "npm run babel && npm run core-js && npm run migrate && npm run compress && npm run make-dist && npm run copy-res",
+    "build": "npm run babel && npm run core-js && npm run copy && npm run compress",
     "babel": "babel --source-maps --extensions \".js,.ts,.tsx\" resources-src/ --out-dir resources/",
     "core-js": "node buildCoreJs.js",
-    "migrate": "shx cp -r resources-static/* resources",
-    "make-dist": "shx rm -rf ../../mugen/account && shx mkdir ../../mugen/account",
-    "copy-res": "shx cp -r resources ../../mugen/account/ && shx cp -r messages ../../mugen/account/ && shx cp index.ftl ../../mugen/account/ && shx cp theme.properties ../../mugen/account/",
+    "copy": "shx cp -r resources-static/* resources",
     "compress": "node compress.js"
   },
   "author": "",
@@ -22,7 +18,7 @@
     "corejs": "^1.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.16.8",
+    "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.7",
     "@babel/plugin-transform-modules-amd": "^7.16.0",
     "@babel/preset-env": "^7.16.0",

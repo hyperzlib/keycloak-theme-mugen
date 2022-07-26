@@ -5,8 +5,9 @@ import {
     Form,
     FormGroup,
     Tooltip,
+    ValidatedOptions,
 } from '@patternfly/react-core';
-import {Modal} from './Modal';
+import {Modal, ModalVariant} from './Modal';
 import {Msg} from './Msg';
 import {KeycloakContext} from '../keycloak-service/KeycloakContext';
 import {KeycloakService} from '../keycloak-service/keycloak.service';
@@ -23,12 +24,10 @@ interface UploadAvatarModelProps {
     onChange?: (newAvatar: string | undefined) => void;
     onClose?: () => void;
     isDisabled?: boolean;
-    isSmall?: boolean;
-    isLarge?: boolean;
 }
 
 interface UploadAvatarModelState {
-    isModalOpen: boolean;
+    isOpen: boolean;
 
     avatarUrl?: string;
 
@@ -65,7 +64,7 @@ export class UploadAvatarModal extends React.Component<UploadAvatarModelProps, U
         super(props);
 
         this.state = {
-            isModalOpen: false,
+            isOpen: false,
 
             selectedFile: undefined,
             selectedFileName: "",
@@ -156,11 +155,11 @@ export class UploadAvatarModal extends React.Component<UploadAvatarModelProps, U
         });
     };
 
-    private handleModalToggle = (isOpen = !this.state.isModalOpen) => {
+    private handleModalToggle = (isOpen = !this.state.isOpen) => {
         this.setState({
-            isModalOpen: isOpen
+            isOpen: isOpen
         });
-        if (!this.state.isModalOpen && this.props.onClose) this.props.onClose();
+        if (!this.state.isOpen && this.props.onClose) this.props.onClose();
     };
 
     private handleSaveAvatar = () => {
@@ -248,7 +247,7 @@ export class UploadAvatarModal extends React.Component<UploadAvatarModelProps, U
     };
 
     public render(): React.ReactNode {
-        const {isModalOpen} = this.state;
+        const {isOpen: isModalOpen} = this.state;
 
         return (
             <React.Fragment>
@@ -279,10 +278,9 @@ export class UploadAvatarModal extends React.Component<UploadAvatarModelProps, U
                 <Modal
                     className={"uploadAvatarModal"}
                     title={Msg.localize('uploadAvatar')}
-                    isModalOpen={isModalOpen}
+                    variant={ModalVariant.small}
+                    isOpen={isModalOpen}
                     disabled={this.props.isDisabled}
-                    isSmall={this.props.isSmall}
-                    isLarge={this.props.isLarge}
                     onClose={() => this.handleModalToggle(false)}
                     actions={[
                         <Button id='modal-confirm' key="confirm" variant="primary" onClick={this.handleSaveAvatar}>
@@ -295,7 +293,11 @@ export class UploadAvatarModal extends React.Component<UploadAvatarModelProps, U
                             fieldId="avatar-file"
                             className="fileSelectFormGroup"
                             helperTextInvalid={this.state.errors.file}
-                            isValid={this.state.errors.file === ''}
+                            validated={
+                                this.state.errors.file !== ""
+                                ? ValidatedOptions.error
+                                : ValidatedOptions.default
+                            }
                         >
                             <FileUpload
                                 id="avatar-file"

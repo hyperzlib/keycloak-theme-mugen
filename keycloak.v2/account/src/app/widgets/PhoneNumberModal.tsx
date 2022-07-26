@@ -8,8 +8,9 @@ import {
     FormSelectOption,
     InputGroup,
     TextInput,
+    ValidatedOptions,
 } from '@patternfly/react-core';
-import {Modal} from './Modal';
+import {Modal, ModalVariant} from './Modal';
 import {Msg} from './Msg';
 import {CaptchaService} from '../util/CaptchaService';
 import {GeetestCaptcha} from '../util/GeetestCaptcha';
@@ -28,12 +29,10 @@ interface PhoneNumberModelProps {
     onChange?: (phoneNumber: string | undefined) => void;
     onClose?: () => void;
     isDisabled?: boolean;
-    isSmall?: boolean;
-    isLarge?: boolean;
 }
 
 interface PhoneNumberModelState {
-    isModalOpen: boolean;
+    isOpen: boolean;
     inputAreaCode: string;
     inputPhoneNumber: string;
     inputSmsCode: string;
@@ -83,7 +82,7 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
         super(props);
 
         this.state = {
-            isModalOpen: false,
+            isOpen: false,
             inputAreaCode: '',
             inputPhoneNumber: '',
             inputSmsCode: '',
@@ -295,11 +294,11 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
         });
     };
 
-    private handleModalToggle = (isOpen = !this.state.isModalOpen) => {
+    private handleModalToggle = (isOpen = !this.state.isOpen) => {
         this.setState({
-            isModalOpen: isOpen
+            isOpen: isOpen
         });
-        if (!this.state.isModalOpen && this.props.onClose) this.props.onClose();
+        if (!this.state.isOpen && this.props.onClose) this.props.onClose();
     };
 
     private handleSavePhoneNumber = () => {
@@ -394,7 +393,7 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
     };
 
     public render(): React.ReactNode {
-        const {isModalOpen} = this.state;
+        const {isOpen: isModalOpen} = this.state;
 
         return (
             <React.Fragment>
@@ -419,10 +418,9 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
                 <Modal
                     className={"phoneNumberModal"}
                     title={Msg.localize('changePhoneNumber')}
-                    isModalOpen={isModalOpen}
+                    variant={ModalVariant.small}
+                    isOpen={isModalOpen}
                     disabled={this.props.isDisabled}
-                    isSmall={this.props.isSmall}
-                    isLarge={this.props.isLarge}
                     onClose={() => this.handleModalToggle(false)}
                     actions={[
                         <Button id='modal-confirm' key="confirm" variant="primary" onClick={this.handleSavePhoneNumber}>
@@ -435,7 +433,11 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
                             label={Msg.localize('phoneNumber')}
                             fieldId="phone-number"
                             helperTextInvalid={this.state.errors.phoneNumber}
-                            isValid={this.state.errors.phoneNumber === ''}
+                            validated={
+                                this.state.errors.phoneNumber !== ""
+                                ? ValidatedOptions.error
+                                : ValidatedOptions.default
+                            }
                         >
                             <InputGroup>
                                 {/*
@@ -473,7 +475,11 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
                                     maxLength={11}
                                     value={this.state.inputPhoneNumber}
                                     onChange={this.handleChange}
-                                    isValid={this.state.errors.phoneNumber === ''}
+                                    validated={
+                                        this.state.errors.phoneNumber !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                    }
                                 >
                                 </TextInput>
                             </InputGroup>
@@ -482,7 +488,11 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
                             label={Msg.localize('smsCode')}
                             fieldId="sms-code"
                             helperTextInvalid={this.state.errors.smsCode}
-                            isValid={this.state.errors.smsCode === ''}
+                            validated={
+                                this.state.errors.smsCode !== ""
+                                ? ValidatedOptions.error
+                                : ValidatedOptions.default
+                            }
                         >
                             <InputGroup>
                                 <TextInput
@@ -491,7 +501,11 @@ export class PhoneNumberModal extends React.Component<PhoneNumberModelProps, Pho
                                     name="smsCode"
                                     maxLength={6}
                                     onChange={this.handleChange}
-                                    isValid={this.state.errors.smsCode === ''}
+                                    validated={
+                                        this.state.errors.smsCode !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                    }
                                 >
                                 </TextInput>
                                 <Button

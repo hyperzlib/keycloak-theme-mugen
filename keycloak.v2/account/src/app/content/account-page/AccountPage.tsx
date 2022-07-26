@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import {
-    ActionGroup,
-    Button,
-    Form,
-    FormGroup,
-    Flex,
-    FlexItem,
+import { ActionGroup, 
+    Button, 
+    Form, 
+    FormGroup, 
+    TextInput, 
+    Grid, 
+    GridItem, 
+    ExpandableSection, 
+    ValidatedOptions,
+    PageSection,
+    PageSectionVariants,
     Text,
-    TextInput,
-    Grid,
-    GridItem,
-    Expandable, TextArea
+    TextVariants,
+    TextContent,
+    TextArea,
+    Flex,
+    FlexItem
 } from '@patternfly/react-core';
 
 import { HttpResponse } from '../../account-service/account.service';
@@ -38,8 +43,8 @@ import { LocaleSelector } from '../../widgets/LocaleSelectors';
 import { KeycloakContext } from '../../keycloak-service/KeycloakContext';
 import { KeycloakService } from '../../keycloak-service/keycloak.service';
 import { AIACommand } from '../../util/AIACommand';
-import { PhoneNumberModal } from '../../widgets/PhoneNumberModal';
 import { UploadAvatarModal } from '../../widgets/UploadAvatarModal';
+import { PhoneNumberModal } from '../../widgets/PhoneNumberModal';
 
 declare const features: Features;
 declare const locale: string;
@@ -64,7 +69,6 @@ interface FormFields {
     readonly phoneNumber?: string;
     readonly bio?: string;
 }
-
 
 interface AccountPageState {
     readonly errors: FormFields;
@@ -142,7 +146,7 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
         this.fetchPersonalInfo();
     }
 
-    private handleChange = (value: string, event: React.FormEvent<HTMLInputElement>) => {
+    private handleChange = (value: string, event: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => {
         const target = event.currentTarget;
         const name = target.name;
 
@@ -162,7 +166,7 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
                 username: formFields.username,
                 email: formFields.email,
                 firstName: formFields.firstName,
-                lastName: '', // Clear lastName
+                lastName: formFields.lastName,
                 attributes: {
                     locale: formFields.locale ? [formFields.locale] : undefined,
                     bio: formFields.bio ? [formFields.bio] : undefined,
@@ -197,208 +201,277 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
     public render(): React.ReactNode {
         const fields: FormFields = this.state.formFields;
         return (
-            <ContentPage title="personalInfoHtmlTitle"
-                introMessage="personalSubMessage">
-                <Form isHorizontal onSubmit={event => this.handleSubmit(event)}>
-                    <FormGroup
-                        label={Msg.localize('avatar')}
-                        fieldId="avatar"
-                    >
-                        <UploadAvatarModal
-                            type="account"
-                            buttonId="upload-avatar-dialog-btn"
-                            buttonTitle={Msg.localize('openUploadAvatarDialogBtn')}
-                        >
-                        </UploadAvatarModal>
-                    </FormGroup>
-                    {!this.isRegistrationEmailAsUsername &&
-                        <FormGroup
-                            label={Msg.localize('username')}
-                            isRequired
-                            fieldId="user-name"
-                            helperTextInvalid={this.state.errors.username}
-                            isValid={this.state.errors.username === ''}
-                        >
-                            {this.isEditUserNameAllowed && <this.UsernameInput />}
-                            {!this.isEditUserNameAllowed && <this.RestrictedUsernameInput />}
-                        </FormGroup>
-                    }
-                    <FormGroup
-                        label={Msg.localize('email')}
-                        isRequired={!fields.phoneNumber}
-                        fieldId="email-address"
-                        helperTextInvalid={this.state.errors.email}
-                        isValid={this.state.errors.email === ''}
-                    >
-                        <TextInput
-                            isRequired={!fields.phoneNumber}
-                            type="email"
-                            id="email-address"
-                            name="email"
-                            maxLength={254}
-                            value={fields.email}
-                            onChange={this.handleChange}
-                            isValid={this.state.errors.email === ''}
-                        >
-                        </TextInput>
-                    </FormGroup>
-                    <FormGroup
-                        label={Msg.localize('nickName') + ' (' + Msg.localize('optionalInput') + ')'}
-                        fieldId="first-name"
-                        helperTextInvalid={this.state.errors.firstName}
-                        isValid={this.state.errors.firstName === ''}
-                    >
-                        <TextInput
-                            type="text"
-                            id="first-name"
-                            name="firstName"
-                            maxLength={254}
-                            value={fields.firstName}
-                            onChange={this.handleChange}
-                            isValid={this.state.errors.firstName === ''}
-                        >
-                        </TextInput>
-                    </FormGroup>
-                    <FormGroup
-                        isRequired={!fields.email}
-                        label={Msg.localize('phoneNumber')}
-                        fieldId="phone-number"
-                    >
-                        <Flex className="pf-m-justify-content-space-between pf-m-align-items-baseline">
-                            <FlexItem>
-                                <Text>{ fields.phoneNumber || Msg.localize('phoneNumberNotSet') }</Text>
-                            </FlexItem>
-                            <FlexItem>
-                                <PhoneNumberModal
-                                    type="account"
-                                    oldPhoneNumber={fields.phoneNumber}
-                                    buttonId="phone-number-dialog-btn"
-                                    buttonTitle={Msg.localize('openPhoneNumberDialogBtn')}
-                                    buttonVariant="primary"
-                                    onChange={value => this.setState({
-                                        formFields: {
-                                            ...fields,
-                                            phoneNumber: value || undefined
-                                        }
-                                    })}
-                                >
-                                </PhoneNumberModal>
-                            </FlexItem>
-                        </Flex>
-                    </FormGroup>
+            <ContentPage
+                title="personalInfoHtmlTitle"
+                introMessage="personalSubMessage"
+            >
+                <PageSection isFilled variant={PageSectionVariants.light}>
                     {/*
-                    <FormGroup
-                        label={Msg.localize('firstName')}
-                        isRequired
-                        fieldId="first-name"
-                        helperTextInvalid={this.state.errors.firstName}
-                        isValid={this.state.errors.firstName === ''}
-                    >
-                        <TextInput
-                            isRequired
-                            type="text"
-                            id="first-name"
-                            name="firstName"
-                            maxLength={254}
-                            value={fields.firstName}
-                            onChange={this.handleChange}
-                            isValid={this.state.errors.firstName === ''}
-                        >
-                        </TextInput>
-                    </FormGroup>
-                    <FormGroup
-                        label={Msg.localize('lastName')}
-                        isRequired
-                        fieldId="last-name"
-                        helperTextInvalid={this.state.errors.lastName}
-                        isValid={this.state.errors.lastName === ''}
-                    >
-                        <TextInput
-                            isRequired
-                            type="text"
-                            id="last-name"
-                            name="lastName"
-                            maxLength={254}
-                            value={fields.lastName}
-                            onChange={this.handleChange}
-                            isValid={this.state.errors.lastName === ''}
-                        >
-                        </TextInput>
-                    </FormGroup>
+                    <TextContent className="pf-u-mb-lg">
+                        <Text component={TextVariants.small}>
+                          {Msg.localize('allFieldsRequired')}
+                        </Text>
+                    </TextContent>
                     */}
-                    <FormGroup
-                        label={Msg.localize('bio')}
-                        fieldId="bio"
-                        helperTextInvalid={this.state.errors.firstName}
-                        isValid={this.state.errors.firstName === ''}
+                    <Form
+                        onSubmit={(event) => this.handleSubmit(event)}
+                        className="personal-info-form"
                     >
-                        <TextArea
-                            id="bio"
-                            value={fields.bio || ''}
-                            onChange={value => this.setState({
-                                errors: this.state.errors,
-                                formFields: { ...this.state.formFields, bio: value }
-                            })}
-                            rows={4}
+                        <FormGroup
+                            label={Msg.localize('avatar')}
+                            fieldId="avatar"
                         >
-
-                        </TextArea>
-                    </FormGroup>
-                    {features.isInternationalizationEnabled && <FormGroup
-                        label={Msg.localize('selectLocale')}
-                        isRequired
-                        fieldId="locale"
-                    >
-                        <LocaleSelector id="locale-selector"
-                            value={fields.locale || ''}
-                            onChange={value => this.setState({
-                                errors: this.state.errors,
-                                formFields: { ...this.state.formFields, locale: value }
-                            })}
-                        />
-                    </FormGroup>}
-                    <ActionGroup>
-                        <Button
-                            type="submit"
-                            id="save-btn"
-                            variant="primary"
-                            isDisabled={Object.values(this.state.errors).filter(e => e !== '').length !== 0}
-                        >
-                            <Msg msgKey="doSave" />
-                        </Button>
-                        <Button
-                            id="cancel-btn"
-                            variant="secondary"
-                            onClick={this.handleCancel}
-                        >
-                            <Msg msgKey="doCancel" />
-                        </Button>
-                    </ActionGroup>
-                </Form>
-
-           { this.isDeleteAccountAllowed && 
-            <div id="delete-account" style={{marginTop:"30px"}}>
-              <Expandable toggleText={Msg.localize('deleteAccount')}>
-                 <Grid gutter={"sm"}>
-                        <GridItem span={6}>
-                             <p>
-                                <Msg msgKey="deleteAccountWarning" />
-                             </p>
-                        </GridItem>
-                        <GridItem span={4}>
-                            <KeycloakContext.Consumer>
-                                { (keycloak: KeycloakService) => (
-                                        <Button id="delete-account-btn" variant="danger" onClick={() => this.handleDelete(keycloak)} className="delete-button"><Msg msgKey="doDelete" /></Button>
+                            <UploadAvatarModal
+                                type="account"
+                                buttonId="upload-avatar-dialog-btn"
+                                buttonTitle={Msg.localize('openUploadAvatarDialogBtn')}
+                            >
+                            </UploadAvatarModal>
+                        </FormGroup>
+                        {!this.isRegistrationEmailAsUsername && (
+                            <FormGroup
+                                label={Msg.localize("username")}
+                                fieldId="user-name"
+                                helperTextInvalid={this.state.errors.username}
+                                validated={
+                                    this.state.errors.username !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                }
+                            >
+                                {this.isEditUserNameAllowed && <this.UsernameInput />}
+                                {!this.isEditUserNameAllowed && (
+                                    <this.RestrictedUsernameInput />
                                 )}
-                            </KeycloakContext.Consumer>
-                        </GridItem>
-                        <GridItem span={2}>
-                        </GridItem>
-                    </Grid>
-                                
-              </Expandable> 
-              </div>}
-            </ContentPage>
+                            </FormGroup>
+                        )}
+                        <FormGroup
+                            label={Msg.localize("email")}
+                            fieldId="email-address"
+                            isRequired={!fields.phoneNumber}
+                            helperTextInvalid={this.state.errors.email}
+                            validated={
+                                this.state.errors.email !== ""
+                                    ? ValidatedOptions.error
+                                    : ValidatedOptions.default
+                            }
+                        >
+                            <TextInput
+                                type="email"
+                                id="email-address"
+                                name="email"
+                                isRequired={!fields.phoneNumber}
+                                maxLength={254}
+                                value={fields.email}
+                                onChange={this.handleChange}
+                                validated={
+                                    this.state.errors.email !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                }
+                            ></TextInput>
+                        </FormGroup>
+                        <FormGroup
+                            isRequired={!fields.email}
+                            label={Msg.localize('phoneNumber')}
+                            fieldId="phone-number"
+                        >
+                            <Flex className="pf-m-justify-content-space-between pf-m-align-items-baseline">
+                                <FlexItem>
+                                    <Text>{ fields.phoneNumber || Msg.localize('phoneNumberNotSet') }</Text>
+                                </FlexItem>
+                                <FlexItem>
+                                    <PhoneNumberModal
+                                        type="account"
+                                        oldPhoneNumber={fields.phoneNumber}
+                                        buttonId="phone-number-dialog-btn"
+                                        buttonTitle={Msg.localize('openPhoneNumberDialogBtn')}
+                                        buttonVariant="primary"
+                                        onChange={value => this.setState({
+                                            formFields: {
+                                                ...fields,
+                                                phoneNumber: value || undefined
+                                            }
+                                        })}
+                                    >
+                                    </PhoneNumberModal>
+                                </FlexItem>
+                            </Flex>
+                        </FormGroup>
+                        <FormGroup
+                            label={Msg.localize('nickName') + ' (' + Msg.localize('optionalInput') + ')'}
+                            fieldId="first-name"
+                            helperTextInvalid={this.state.errors.firstName}
+                            validated={
+                                this.state.errors.firstName !== ""
+                                    ? ValidatedOptions.error
+                                    : ValidatedOptions.default
+                            }
+                        >
+                            <TextInput
+                                type="text"
+                                id="first-name"
+                                name="firstName"
+                                maxLength={254}
+                                value={fields.firstName}
+                                onChange={this.handleChange}
+                                validated={
+                                    this.state.errors.firstName !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                }
+                            ></TextInput>
+                        </FormGroup>
+                        {/*
+                        <FormGroup
+                            label={Msg.localize("firstName")}
+                            fieldId="first-name"
+                            helperTextInvalid={this.state.errors.firstName}
+                            validated={
+                                this.state.errors.firstName !== ""
+                                    ? ValidatedOptions.error
+                                    : ValidatedOptions.default
+                            }
+                        >
+                            <TextInput
+                                isRequired
+                                type="text"
+                                id="first-name"
+                                name="firstName"
+                                maxLength={254}
+                                value={fields.firstName}
+                                onChange={this.handleChange}
+                                validated={
+                                    this.state.errors.firstName !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                }
+                            ></TextInput>
+                        </FormGroup>
+                        <FormGroup
+                            label={Msg.localize("lastName")}
+                            fieldId="last-name"
+                            helperTextInvalid={this.state.errors.lastName}
+                            validated={
+                                this.state.errors.lastName !== ""
+                                    ? ValidatedOptions.error
+                                    : ValidatedOptions.default
+                            }
+                        >
+                            <TextInput
+                                isRequired
+                                type="text"
+                                id="last-name"
+                                name="lastName"
+                                maxLength={254}
+                                value={fields.lastName}
+                                onChange={this.handleChange}
+                                validated={
+                                    this.state.errors.lastName !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                }
+                            ></TextInput>
+                        </FormGroup>
+                        */}
+                        <FormGroup
+                            label={Msg.localize('bio')}
+                            fieldId="bio"
+                            helperTextInvalid={this.state.errors.firstName}
+                            validated={
+                                this.state.errors.firstName !== ""
+                                    ? ValidatedOptions.error
+                                    : ValidatedOptions.default
+                            }
+                        >
+                            <TextArea
+                                id="bio"
+                                name="bio"
+                                value={fields.bio || ''}
+                                onChange={this.handleChange}
+                                validated={
+                                    this.state.errors.lastName !== ""
+                                        ? ValidatedOptions.error
+                                        : ValidatedOptions.default
+                                }
+                                rows={4}
+                            >
+
+                            </TextArea>
+                        </FormGroup>
+                        {features.isInternationalizationEnabled && (
+                            <FormGroup
+                                label={Msg.localize("selectLocale")}
+                                isRequired
+                                fieldId="locale"
+                            >
+                                <LocaleSelector
+                                    id="locale-selector"
+                                    value={fields.locale || ""}
+                                    onChange={(value) =>
+                                        this.setState({
+                                            errors: this.state.errors,
+                                            formFields: {
+                                                ...this.state.formFields,
+                                                locale: value
+                                            },
+                                        })
+                                    }
+                                />
+                            </FormGroup>
+                        )}
+                        <ActionGroup>
+                            <Button
+                                type="submit"
+                                id="save-btn"
+                                variant="primary"
+                                isDisabled={
+                                    Object.values(this.state.errors).filter((e) => e !== "")
+                                    .length !== 0
+                                }
+                            >
+                                <Msg msgKey="doSave" />
+                            </Button>
+                            <Button
+                                id="cancel-btn"
+                                variant="link"
+                                onClick={this.handleCancel}
+                            >
+                                <Msg msgKey="doCancel" />
+                            </Button>
+                        </ActionGroup>
+                    </Form>
+
+            {this.isDeleteAccountAllowed && (
+                <div id="delete-account" style={{ marginTop: "30px" }}>
+                    <ExpandableSection toggleText="Delete Account">
+                        <Grid hasGutter>
+                            <GridItem span={6}>
+                                <p>
+                                    <Msg msgKey="deleteAccountWarning" />
+                                </p>
+                            </GridItem>
+                            <GridItem span={4}>
+                                <KeycloakContext.Consumer>
+                                    {(keycloak: KeycloakService) => (
+                                        <Button
+                                            id="delete-account-btn"
+                                            variant="danger"
+                                            onClick={() => this.handleDelete(keycloak)}
+                                            className="delete-button"
+                                        >
+                                            <Msg msgKey="doDelete" />
+                                        </Button>
+                                    )}
+                                </KeycloakContext.Consumer>
+                            </GridItem>
+                            <GridItem span={2}></GridItem>
+                        </Grid>
+                    </ExpandableSection>
+                </div>
+            )}
+            </PageSection>
+        </ContentPage>
         );
     }
 
@@ -411,14 +484,14 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
             maxLength={254}
             value={this.state.formFields.username}
             onChange={this.handleChange}
-            isValid={this.state.errors.username === ''}
+            validated={this.state.errors.username !== '' ? ValidatedOptions.error : ValidatedOptions.default}
         >
         </TextInput>
     );
 
     private RestrictedUsernameInput = () => (
         <TextInput
-            isDisabled
+            isReadOnly
             type="text"
             id="user-name"
             name="username"
@@ -426,4 +499,4 @@ export class AccountPage extends React.Component<AccountPageProps, AccountPageSt
         >
         </TextInput>
     );
-}
+};
