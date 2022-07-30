@@ -12,7 +12,7 @@
                 </div>
                 <div class="${properties.kcInputWrapperClass!}">
                     <input type="text" id="username" class="${properties.kcInputClass!}" name="username"
-                        value="${(register.formData.username!'')}" autocomplete="username"
+                        value="${(profile.attributesByName.username.value)!''}" autocomplete="username"
                         aria-invalid="<#if messagesPerField.existsError('username')>true</#if>"
                     />
                     <span class="pf-c-form__helper-text" aria-live="polite">
@@ -32,7 +32,7 @@
                 </div>
                 <div class="${properties.kcInputWrapperClass!}">
                     <input type="text" id="email" class="${properties.kcInputClass!}" name="email"
-                        value="${(register.formData.email!'')}" autocomplete="email"
+                        value="${(profile.attributesByName.email.value)!''}" autocomplete="email"
                         aria-invalid="<#if messagesPerField.existsError('email')>true</#if>"
                     />
 
@@ -50,7 +50,7 @@
                 </div>
                 <div class="${properties.kcInputWrapperClass!}">
                     <input type="text" id="firstName" class="${properties.kcInputClass!}" name="firstName"
-                        value="${(register.formData.firstName!'')}"
+                        value="${(profile.attributesByName.firstName.value)!''} ${(profile.attributesByName.lastName.value)!''}"
                         aria-invalid="<#if messagesPerField.existsError('firstName')>true</#if>"
                     />
 
